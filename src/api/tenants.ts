@@ -1,6 +1,5 @@
-// src/api/tenants.ts
 import { api } from './client';
-import { Tenant, TenantCreate, TenantUpdate, ApiResponse, PaginatedResponse } from '@/types';
+import { Tenant, TenantCreate, TenantUpdate, PaginatedResponse } from '@/types';
 
 export const tenantsApi = {
   // ✅ الحصول على جميع المستأجرين

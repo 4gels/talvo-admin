@@ -1,4 +1,3 @@
-// src/hooks/useTenants.ts
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { tenantsApi } from '@/api/tenants';
@@ -8,16 +7,20 @@ export const useTenants = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   // ✅ تحميل المستأجرين
   const loadTenants = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await tenantsApi.getAll({ limit: 100 });
       setTenants(response.items || []);
       setTotal(response.total || 0);
-    } catch (error) {
-      toast.error('فشل تحميل المستأجرين');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'فشل تحميل المستأجرين';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -31,6 +34,7 @@ export const useTenants = () => {
       await loadTenants();
       return { success: true, data: response };
     } catch (error) {
+      toast.error('فشل إنشاء المستأجر');
       return { success: false };
     }
   }, [loadTenants]);
@@ -43,6 +47,7 @@ export const useTenants = () => {
       await loadTenants();
       return { success: true, data: response };
     } catch (error) {
+      toast.error('فشل تحديث المستأجر');
       return { success: false };
     }
   }, [loadTenants]);
@@ -55,6 +60,7 @@ export const useTenants = () => {
       await loadTenants();
       return { success: true };
     } catch (error) {
+      toast.error('فشل حذف المستأجر');
       return { success: false };
     }
   }, [loadTenants]);
@@ -67,6 +73,7 @@ export const useTenants = () => {
       await loadTenants();
       return { success: true };
     } catch (error) {
+      toast.error('فشل تغيير حالة المستأجر');
       return { success: false };
     }
   }, [loadTenants]);
@@ -78,6 +85,7 @@ export const useTenants = () => {
       toast.success('تم إعادة توليد المفتاح بنجاح');
       return { success: true, license_key: response.license_key };
     } catch (error) {
+      toast.error('فشل إعادة توليد المفتاح');
       return { success: false };
     }
   }, []);
@@ -90,6 +98,7 @@ export const useTenants = () => {
     tenants,
     loading,
     total,
+    error,
     loadTenants,
     createTenant,
     updateTenant,

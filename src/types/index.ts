@@ -11,11 +11,11 @@ export interface Tenant {
   phone?: string;
   email?: string;
   address?: string;
-  tax_number?: string;
-  commercial_register?: string;
+  tax_number?: string | null;
+  commercial_register?: string | null;
   currency: string;
   timezone: string;
-  logo_path?: string;
+  logo_path?: string | null;
   is_active: boolean;
   max_users: number;
   max_storage_mb: number;
@@ -41,6 +41,7 @@ export interface Tenant {
   created_at: string;
   updated_at: string;
   last_login: string | null;
+  is_deleted?: boolean;
 }
 
 export interface TenantCreate {
@@ -52,7 +53,7 @@ export interface TenantCreate {
   subscription_plan: 'basic' | 'pro' | 'enterprise';
   max_users: number;
   subscription_days: number;
-  is_active: boolean;
+  is_active?: boolean;
   can_manage_products?: boolean;
   can_manage_sales?: boolean;
   can_manage_purchases?: boolean;

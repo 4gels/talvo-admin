@@ -1,5 +1,3 @@
-
-// src/api/client.ts
 import axios, {
   AxiosInstance,
   AxiosError,
@@ -10,7 +8,7 @@ import toast from 'react-hot-toast';
 
 // تكوين API
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  import.meta.env.VITE_API_URL || 'https://talvo-api.vercel.app';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -42,7 +40,13 @@ apiClient.interceptors.response.use(
     const data = error.response?.data as {
       message?: string;
       detail?: string;
+      error?: string;
     } | undefined;
+
+    // ✅ تجاهل أخطاء 304 (Not Modified)
+    if (status === 304) {
+      return Promise.resolve(error.response);
+    }
 
     if (status === 401) {
       localStorage.removeItem('token');
@@ -59,6 +63,8 @@ apiClient.interceptors.response.use(
       toast.error(data.message);
     } else if (data?.detail) {
       toast.error(data.detail);
+    } else if (data?.error) {
+      toast.error(data.error);
     }
 
     return Promise.reject(error);

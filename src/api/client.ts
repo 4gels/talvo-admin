@@ -1,9 +1,16 @@
+
 // src/api/client.ts
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+  AxiosRequestConfig,
+} from 'axios';
 import toast from 'react-hot-toast';
 
-// ✅ تكوين API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// تكوين API
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -13,24 +20,29 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// ✅ Interceptor: إضافة Token
+// Interceptor: إضافة Token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ✅ Interceptor: معالجة الأخطاء
+// Interceptor: معالجة الأخطاء
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     const status = error.response?.status;
-    const data = error.response?.data as any;
+    const data = error.response?.data as {
+      message?: string;
+      detail?: string;
+    } | undefined;
 
     if (status === 401) {
       localStorage.removeItem('token');
@@ -53,10 +65,17 @@ apiClient.interceptors.response.use(
   }
 );
 
-// ✅ دوال مساعدة للـ API
+// دوال مساعدة للـ API
 export const api = {
-  get: <T>(url: string) => apiClient.get<T>(url).then((res) => res.data),
-  post: <T>(url: string, data?: any) => apiClient.post<T>(url, data).then((res) => res.data),
-  put: <T>(url: string, data?: any) => apiClient.put<T>(url, data).then((res) => res.data),
-  delete: <T>(url: string) => apiClient.delete<T>(url).then((res) => res.data),
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.get<T>(url, config).then((res) => res.data),
+
+  post: <T = unknown>(url: string, data?: unknown) =>
+    apiClient.post<T>(url, data).then((res) => res.data),
+
+  put: <T = unknown>(url: string, data?: unknown) =>
+    apiClient.put<T>(url, data).then((res) => res.data),
+
+  delete: <T = unknown>(url: string) =>
+    apiClient.delete<T>(url).then((res) => res.data),
 };

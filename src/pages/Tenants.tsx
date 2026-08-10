@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTenants } from '@/hooks/useTenants';
 import { TenantCard } from '@/components/tenants/TenantCard';
 import { TenantForm } from '@/components/tenants/TenantForm';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Building2  } from 'lucide-react';
 
 export const Tenants: React.FC = () => {
   const { tenants, loading, loadTenants } = useTenants();

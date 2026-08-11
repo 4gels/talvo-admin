@@ -6,7 +6,6 @@ import axios, {
 } from 'axios';
 import toast from 'react-hot-toast';
 
-// تكوين API
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'https://talvo-api.vercel.app';
 
@@ -18,21 +17,17 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Interceptor: إضافة Token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Interceptor: معالجة الأخطاء
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
@@ -43,8 +38,8 @@ apiClient.interceptors.response.use(
       error?: string;
     } | undefined;
 
-    // ✅ تجاهل أخطاء 304 (Not Modified)
     if (status === 304) {
+      // ✅ تجاهل 304 لأنه ليس خطأ حقيقي
       return Promise.resolve(error.response);
     }
 
@@ -71,17 +66,16 @@ apiClient.interceptors.response.use(
   }
 );
 
-// دوال مساعدة للـ API
 export const api = {
   get: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
     apiClient.get<T>(url, config).then((res) => res.data),
 
-  post: <T = unknown>(url: string, data?: unknown) =>
-    apiClient.post<T>(url, data).then((res) => res.data),
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    apiClient.post<T>(url, data, config).then((res) => res.data),
 
-  put: <T = unknown>(url: string, data?: unknown) =>
-    apiClient.put<T>(url, data).then((res) => res.data),
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    apiClient.put<T>(url, data, config).then((res) => res.data),
 
-  delete: <T = unknown>(url: string) =>
-    apiClient.delete<T>(url).then((res) => res.data),
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.delete<T>(url, config).then((res) => res.data),
 };

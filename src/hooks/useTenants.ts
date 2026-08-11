@@ -9,14 +9,21 @@ export const useTenants = () => {
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ تحميل المستأجرين
   const loadTenants = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await tenantsApi.getAll({ limit: 100 });
-      setTenants(response.items || []);
-      setTotal(response.total || 0);
+
+      // ✅ الـ API بيرجع Array مباشرة
+      if (Array.isArray(response)) {
+        setTenants(response);
+        setTotal(response.length);
+      } else {
+        // ✅ fallback لو غير متوقع
+        setTenants([]);
+        setTotal(0);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'فشل تحميل المستأجرين';
       setError(message);
@@ -26,7 +33,6 @@ export const useTenants = () => {
     }
   }, []);
 
-  // ✅ إنشاء مستأجر
   const createTenant = useCallback(async (data: TenantCreate) => {
     try {
       const response = await tenantsApi.create(data);
@@ -39,7 +45,6 @@ export const useTenants = () => {
     }
   }, [loadTenants]);
 
-  // ✅ تحديث مستأجر
   const updateTenant = useCallback(async (id: number, data: TenantUpdate) => {
     try {
       const response = await tenantsApi.update(id, data);
@@ -52,7 +57,6 @@ export const useTenants = () => {
     }
   }, [loadTenants]);
 
-  // ✅ حذف مستأجر
   const deleteTenant = useCallback(async (id: number, force?: boolean) => {
     try {
       await tenantsApi.delete(id, force);
@@ -65,7 +69,6 @@ export const useTenants = () => {
     }
   }, [loadTenants]);
 
-  // ✅ تغيير حالة مستأجر
   const toggleStatus = useCallback(async (id: number) => {
     try {
       const response = await tenantsApi.toggleStatus(id);
@@ -78,7 +81,6 @@ export const useTenants = () => {
     }
   }, [loadTenants]);
 
-  // ✅ إعادة توليد مفتاح
   const regenerateLicense = useCallback(async (id: number) => {
     try {
       const response = await tenantsApi.regenerateLicense(id);

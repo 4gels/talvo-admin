@@ -14,9 +14,11 @@ export const TenantDetails: React.FC<TenantDetailsProps> = ({ tenant, onClose, o
   const { toggleStatus } = useTenants();
 
   const handleToggleStatus = async () => {
-    await toggleStatus(tenant.id);
-    onUpdate();
-    onClose();
+    const result = await toggleStatus(tenant.id);
+    if (result.success) {
+      onUpdate();
+      onClose();
+    }
   };
 
   const formatDate = (date: string | null) => {

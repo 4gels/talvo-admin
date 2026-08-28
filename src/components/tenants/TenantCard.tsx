@@ -1,20 +1,22 @@
-// src/components/tenants/TenantCard.tsx
 import React, { useState } from 'react';
 import { Tenant } from '@/types';
 import { useTenants } from '@/hooks/useTenants';
-import { Edit, Trash2, RefreshCw, Copy, CheckCircle, XCircle } from 'lucide-react';
+import { Edit, Trash2, RefreshCw, Copy, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { TenantForm } from './TenantForm';
+import { TenantDetails } from './TenantDetails';
 import toast from 'react-hot-toast';
 
 interface TenantCardProps {
   tenant: Tenant;
   onUpdate: () => void;
+  onEdit?: () => void;
 }
 
-export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onUpdate }) => {
+export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onUpdate, onEdit }) => {
   const { deleteTenant, toggleStatus, regenerateLicense } = useTenants();
-  const [showEdit, setShowEdit] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
   const handleToggleStatus = async () => {
     if (loading) return;
@@ -75,21 +77,21 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onUpdate }) => {
 
   const status = getStatus();
   const statusLabels = {
-    active: 'نشط',
-    inactive: 'غير نشط',
-    expired: 'منتهي الاشتراك',
+    active: '✅ نشط',
+    inactive: '❌ غير نشط',
+    expired: '⏳ منتهي الاشتراك',
   };
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition cursor-pointer" onClick={() => setShowDetails(true)}>
         {/* ✅ رأس البطاقة */}
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-gray-800 truncate">
               {tenant.arabic_name || tenant.name}
             </h3>
-            <p className="text-sm text-gray-500">{tenant.name}</p>
+            <p className="text-sm text-gray-500 truncate">{tenant.name}</p>
           </div>
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}>
             {statusLabels[status]}
@@ -113,7 +115,7 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onUpdate }) => {
                 {tenant.license_key}
               </code>
               <button
-                onClick={copyLicense}
+                onClick={(e) => { e.stopPropagation(); copyLicense(); }}
                 className="p-1 hover:bg-gray-100 rounded"
                 title="نسخ المفتاح"
               >
@@ -132,9 +134,9 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onUpdate }) => {
         </div>
 
         {/* ✅ الأزرار */}
-        <div className="mt-4 flex items-center gap-2 border-t pt-3">
+        <div className="mt-4 flex items-center gap-2 border-t pt-3" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => setShowEdit(true)}
+            onClick={() => { setShowEdit(true); if (onEdit) onEdit(); }}
             className="flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
           >
             <Edit size={16} />
@@ -161,8 +163,24 @@ export const TenantCard: React.FC<TenantCardProps> = ({ tenant, onUpdate }) => {
             <Trash2 size={16} />
             حذف
           </button>
+          <button
+            onClick={() => setShowDetails(true)}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition"
+          >
+            <Eye size={16} />
+            تفاصيل
+          </button>
         </div>
       </div>
+
+      {/* ✅ نافذة التفاصيل */}
+      {showDetails && (
+        <TenantDetails
+          tenant={tenant}
+          onClose={() => setShowDetails(false)}
+          onUpdate={onUpdate}
+        />
+      )}
 
       {/* ✅ نافذة التعديل */}
       {showEdit && (

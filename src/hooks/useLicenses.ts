@@ -1,4 +1,3 @@
-// src/hooks/useLicenses.ts
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { licensesApi } from '@/api/licenses';
@@ -7,7 +6,6 @@ import { LicenseGenerate, LicenseResponse } from '@/types';
 export const useLicenses = () => {
   const [loading, setLoading] = useState(false);
 
-  // ✅ توليد مفتاح جديد
   const generateLicense = useCallback(async (data: LicenseGenerate) => {
     try {
       setLoading(true);
@@ -22,7 +20,6 @@ export const useLicenses = () => {
     }
   }, []);
 
-  // ✅ التحقق من المفتاح
   const validateLicense = useCallback(async (licenseKey: string) => {
     try {
       const response = await licensesApi.validate(licenseKey);
@@ -32,7 +29,6 @@ export const useLicenses = () => {
     }
   }, []);
 
-  // ✅ إعادة توليد مفتاح لمستأجر
   const regenerateLicense = useCallback(async (tenantId: number) => {
     try {
       setLoading(true);

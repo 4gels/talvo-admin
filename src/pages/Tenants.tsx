@@ -1,19 +1,40 @@
-// src/pages/Tenants.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTenants } from '@/hooks/useTenants';
 import { TenantCard } from '@/components/tenants/TenantCard';
 import { TenantForm } from '@/components/tenants/TenantForm';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Building2, RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const Tenants: React.FC = () => {
   const { tenants, loading, loadTenants } = useTenants();
   const [showForm, setShowForm] = useState(false);
+  const [editingTenant, setEditingTenant] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // ✅ تحميل البيانات عند فتح الصفحة
+  useEffect(() => {
+    loadTenants();
+  }, []);
 
   const filteredTenants = tenants.filter((t) =>
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.arabic_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleRefresh = () => {
+    loadTenants();
+    toast.success('تم تحديث البيانات');
+  };
+
+  const handleEdit = (tenant: any) => {
+    setEditingTenant(tenant);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingTenant(null);
+  };
 
   return (
     <div>
@@ -21,15 +42,29 @@ export const Tenants: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">🏢 المستأجرين</h1>
-          <p className="text-gray-500">إدارة الشركات والمؤسسات المستخدمة للنظام</p>
+          <p className="text-gray-500">
+            إدارة الشركات والمؤسسات المستخدمة للنظام 
+            <span className="text-blue-600 font-medium mr-2">
+              ({tenants.length} مستأجر)
+            </span>
+          </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-        >
-          <Plus size={18} />
-          إضافة مستأجر
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition"
+            title="تحديث"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+          >
+            <Plus size={18} />
+            إضافة مستأجر
+          </button>
+        </div>
       </div>
 
       {/* ✅ شريط البحث */}
@@ -54,29 +89,40 @@ export const Tenants: React.FC = () => {
       ) : filteredTenants.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
           <Building2 className="mx-auto text-gray-300" size={48} />
-          <p className="text-gray-500 mt-2">لا توجد مستأجرين</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
-          >
-            إضافة مستأجر جديد
-          </button>
+          <p className="text-gray-500 mt-2">
+            {searchTerm ? 'لا توجد نتائج مطابقة للبحث' : 'لا توجد مستأجرين'}
+          </p>
+          {!searchTerm && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              إضافة مستأجر جديد
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredTenants.map((tenant) => (
-            <TenantCard key={tenant.id} tenant={tenant} onUpdate={loadTenants} />
+            <TenantCard 
+              key={tenant.id} 
+              tenant={tenant} 
+              onUpdate={loadTenants}
+              onEdit={() => handleEdit(tenant)}
+            />
           ))}
         </div>
       )}
 
-      {/* ✅ نافذة إضافة مستأجر */}
+      {/* ✅ نافذة إضافة/تعديل مستأجر */}
       {showForm && (
         <TenantForm
-          onClose={() => setShowForm(false)}
+          tenant={editingTenant}
+          onClose={handleCloseForm}
           onSuccess={() => {
-            setShowForm(false);
+            handleCloseForm();
             loadTenants();
+            toast.success(editingTenant ? 'تم تحديث المستأجر بنجاح' : 'تم إنشاء المستأجر بنجاح');
           }}
         />
       )}

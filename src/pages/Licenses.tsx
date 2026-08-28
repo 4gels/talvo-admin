@@ -1,15 +1,19 @@
-// src/pages/Licenses.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTenants } from '@/hooks/useTenants';
 import { LicenseGenerator } from '@/components/licenses/LicenseGenerator';
-import { Key, Copy, CheckCircle, XCircle, Clock, Users, Calendar, Building2 } from 'lucide-react';
+import { Key, Copy, Users, Calendar, Building2, Clock, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Licenses: React.FC = () => {
-  const { tenants, loading } = useTenants();
+  const { tenants, loading, loadTenants } = useTenants();
   const [showGenerator, setShowGenerator] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'expired' | 'inactive'>('all');
+
+  // ✅ تحميل البيانات عند فتح الصفحة
+  useEffect(() => {
+    loadTenants();
+  }, []);
 
   const filteredTenants = tenants.filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,21 +51,40 @@ export const Licenses: React.FC = () => {
     return `${days} يوم`;
   };
 
+  const handleRefresh = () => {
+    loadTenants();
+    toast.success('تم تحديث البيانات');
+  };
+
   return (
     <div>
       {/* ✅ الهيدر */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">🔑 المفاتيح</h1>
-          <p className="text-gray-500">إدارة مفاتيح التفعيل للشركات والمؤسسات</p>
+          <p className="text-gray-500">
+            إدارة مفاتيح التفعيل للشركات والمؤسسات
+            <span className="text-blue-600 font-medium mr-2">
+              ({tenants.length} مفتاح)
+            </span>
+          </p>
         </div>
-        <button
-          onClick={() => setShowGenerator(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-        >
-          <Key size={18} />
-          توليد مفتاح جديد
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition"
+            title="تحديث"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button
+            onClick={() => setShowGenerator(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+          >
+            <Key size={18} />
+            توليد مفتاح جديد
+          </button>
+        </div>
       </div>
 
       {/* ✅ شريط البحث والفلتر */}
@@ -95,13 +118,17 @@ export const Licenses: React.FC = () => {
       ) : filteredTenants.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
           <Key className="mx-auto text-gray-300" size={48} />
-          <p className="text-gray-500 mt-2">لا توجد مفاتيح</p>
-          <button
-            onClick={() => setShowGenerator(true)}
-            className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
-          >
-            توليد مفتاح جديد
-          </button>
+          <p className="text-gray-500 mt-2">
+            {searchTerm || filter !== 'all' ? 'لا توجد نتائج مطابقة للبحث' : 'لا توجد مفاتيح'}
+          </p>
+          {!searchTerm && filter === 'all' && (
+            <button
+              onClick={() => setShowGenerator(true)}
+              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              توليد مفتاح جديد
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -118,7 +145,7 @@ export const Licenses: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-800 truncate">
                       {tenant.arabic_name || tenant.name}
                     </h3>
-                    <p className="text-sm text-gray-500">{tenant.name}</p>
+                    <p className="text-sm text-gray-500 truncate">{tenant.name}</p>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
                     {status.label}
@@ -132,7 +159,10 @@ export const Licenses: React.FC = () => {
                       {tenant.license_key}
                     </code>
                     <button
-                      onClick={() => copyLicense(tenant.license_key)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyLicense(tenant.license_key);
+                      }}
                       className="p-1.5 hover:bg-gray-200 rounded transition"
                       title="نسخ المفتاح"
                     >
@@ -172,8 +202,8 @@ export const Licenses: React.FC = () => {
           onClose={() => setShowGenerator(false)}
           onSuccess={() => {
             setShowGenerator(false);
-            // إعادة تحميل البيانات
-            window.location.reload();
+            loadTenants();
+            toast.success('✅ تم التوليد وتحديث البيانات');
           }}
         />
       )}

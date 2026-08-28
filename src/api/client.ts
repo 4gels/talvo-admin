@@ -1,9 +1,13 @@
-// src/api/client.ts
-import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+  AxiosRequestConfig,
+} from 'axios';
 import toast from 'react-hot-toast';
 
-// ✅ تكوين API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'https://talvo-api.vercel.app';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +17,6 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// ✅ Interceptor: إضافة Token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
@@ -25,12 +28,20 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Interceptor: معالجة الأخطاء
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     const status = error.response?.status;
-    const data = error.response?.data as any;
+    const data = error.response?.data as {
+      message?: string;
+      detail?: string;
+      error?: string;
+    } | undefined;
+
+    if (status === 304) {
+      // ✅ تجاهل 304 لأنه ليس خطأ حقيقي
+      return Promise.resolve(error.response);
+    }
 
     if (status === 401) {
       localStorage.removeItem('token');
@@ -47,16 +58,24 @@ apiClient.interceptors.response.use(
       toast.error(data.message);
     } else if (data?.detail) {
       toast.error(data.detail);
+    } else if (data?.error) {
+      toast.error(data.error);
     }
 
     return Promise.reject(error);
   }
 );
 
-// ✅ دوال مساعدة للـ API
 export const api = {
-  get: <T>(url: string) => apiClient.get<T>(url).then((res) => res.data),
-  post: <T>(url: string, data?: any) => apiClient.post<T>(url, data).then((res) => res.data),
-  put: <T>(url: string, data?: any) => apiClient.put<T>(url, data).then((res) => res.data),
-  delete: <T>(url: string) => apiClient.delete<T>(url).then((res) => res.data),
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.get<T>(url, config).then((res) => res.data),
+
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    apiClient.post<T>(url, data, config).then((res) => res.data),
+
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
+    apiClient.put<T>(url, data, config).then((res) => res.data),
+
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.delete<T>(url, config).then((res) => res.data),
 };

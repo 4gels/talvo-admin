@@ -1,13 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
 }
 
 body {
@@ -17,7 +23,7 @@ body {
   color: #1a1a2e;
 }
 
-/* ✅ Custom Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -37,7 +43,7 @@ body {
   background: #a8a8a8;
 }
 
-/* ✅ Loading Spinner */
+/* Loading Spinner */
 .loading-spinner {
   display: inline-block;
   width: 40px;
@@ -54,7 +60,7 @@ body {
   }
 }
 
-/* ✅ RTL Support for Lucide Icons */
-[dir="rtl"] .lucide {
+/* RTL Support for Lucide Icons */
+[dir='rtl'] .lucide {
   transform: scaleX(-1);
 }
